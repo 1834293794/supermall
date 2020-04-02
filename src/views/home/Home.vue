@@ -1,116 +1,23 @@
 <template>
-  <div id="home">
+  <div id="home" class="wrapper">
     <nav-bar class="home-nav">
       <template #center>
         <div>购物街</div>
       </template>
     </nav-bar>
-    <home-swiper :banners="banners"></home-swiper>
-    <recommend-view :recommends="recommend"></recommend-view>
-    <feature-view></feature-view>
-    <tab-control :titles="['流行', '新款', '综合']" class="tab-control"></tab-control>
-    <ul>
-      <li>列表1</li>
-      <li>列表2</li>
-      <li>列表3</li>
-      <li>列表4</li>
-      <li>列表5</li>
-      <li>列表6</li>
-      <li>列表7</li>
-      <li>列表8</li>
-      <li>列表9</li>
-      <li>列表10</li>
-      <li>列表11</li>
-      <li>列表12</li>
-      <li>列表13</li>
-      <li>列表14</li>
-      <li>列表15</li>
-      <li>列表16</li>
-      <li>列表17</li>
-      <li>列表18</li>
-      <li>列表19</li>
-      <li>列表20</li>
-      <li>列表21</li>
-      <li>列表22</li>
-      <li>列表23</li>
-      <li>列表24</li>
-      <li>列表25</li>
-      <li>列表26</li>
-      <li>列表27</li>
-      <li>列表28</li>
-      <li>列表29</li>
-      <li>列表30</li>
-      <li>列表31</li>
-      <li>列表32</li>
-      <li>列表33</li>
-      <li>列表34</li>
-      <li>列表35</li>
-      <li>列表36</li>
-      <li>列表37</li>
-      <li>列表38</li>
-      <li>列表39</li>
-      <li>列表40</li>
-      <li>列表41</li>
-      <li>列表42</li>
-      <li>列表43</li>
-      <li>列表44</li>
-      <li>列表45</li>
-      <li>列表46</li>
-      <li>列表47</li>
-      <li>列表48</li>
-      <li>列表49</li>
-      <li>列表50</li>
-      <li>列表51</li>
-      <li>列表52</li>
-      <li>列表53</li>
-      <li>列表54</li>
-      <li>列表55</li>
-      <li>列表56</li>
-      <li>列表57</li>
-      <li>列表58</li>
-      <li>列表59</li>
-      <li>列表60</li>
-      <li>列表61</li>
-      <li>列表62</li>
-      <li>列表63</li>
-      <li>列表64</li>
-      <li>列表65</li>
-      <li>列表66</li>
-      <li>列表67</li>
-      <li>列表68</li>
-      <li>列表69</li>
-      <li>列表70</li>
-      <li>列表71</li>
-      <li>列表72</li>
-      <li>列表73</li>
-      <li>列表74</li>
-      <li>列表75</li>
-      <li>列表76</li>
-      <li>列表77</li>
-      <li>列表78</li>
-      <li>列表79</li>
-      <li>列表80</li>
-      <li>列表81</li>
-      <li>列表82</li>
-      <li>列表83</li>
-      <li>列表84</li>
-      <li>列表85</li>
-      <li>列表86</li>
-      <li>列表87</li>
-      <li>列表88</li>
-      <li>列表89</li>
-      <li>列表90</li>
-      <li>列表91</li>
-      <li>列表92</li>
-      <li>列表93</li>
-      <li>列表94</li>
-      <li>列表95</li>
-      <li>列表96</li>
-      <li>列表97</li>
-      <li>列表98</li>
-      <li>列表99</li>
-      <li>列表100</li>
-    </ul>
+    <scroll class="content" ref="scroll" :probe-type="3"
+      @scroll="contentScroll"
+      :pull-up-load="true"
+      @pullingUp="loadMore"
+    >
+      <home-swiper :banners="banners"></home-swiper>
+      <recommend-view :recommends="recommend"></recommend-view>
+      <feature-view></feature-view>
+      <tab-control :titles="['流行', '新款', '综合']" class="tab-control" @tabClick="tabClick"></tab-control>
+      <good-list :goods="showGoods"></good-list>      
+    </scroll>
+    <!-- 组件不能直接监听click，必须加上native修饰符以监听组件根元素的原生事件 -->
+    <back-top @click.native="backClick" v-show="isShowBackTop"></back-top>
   </div>
 </template>
 
@@ -122,8 +29,12 @@ import FeatureView from './FeatureView'
 
 import NavBar from 'components/common/navbar/NavBar'
 import TabControl from 'components/content/tabControl/TabControl'
+import GoodList from 'components/content/goods/GoodList'
+import Scroll from 'components/common/scroll/Scroll'
+import BackTop from 'components/content/backTop/BackTop'
 
 import { getHomeMultidata,getHomeGoods } from 'network/home'
+import { debounce } from 'common/utils.js'
 
   export default {
     name: "Home",
@@ -132,7 +43,10 @@ import { getHomeMultidata,getHomeGoods } from 'network/home'
       RecommendView,
       FeatureView,
       NavBar,
-      TabControl
+      TabControl,
+      GoodList,
+      Scroll,
+      BackTop
     },
     data () {
       return {
@@ -142,7 +56,14 @@ import { getHomeMultidata,getHomeGoods } from 'network/home'
           'pop': {page: 0, list: []},
           'new': {page: 0, list: []},
           'sell': {page: 0, list: []},
-        }
+        },
+        currentType: 'pop',
+        isShowBackTop: 'false'
+      }
+    },
+    computed: {
+      showGoods() {
+        return this.goods[this.currentType].list
       }
     },
     created () {
@@ -155,10 +76,46 @@ import { getHomeMultidata,getHomeGoods } from 'network/home'
       this.getHG('sell')
       
     },
+    mounted () {
+      // 防抖函数，避免refresh执行过于频繁,详见utils.js
+      const refresh = debounce(this.$refs.scroll.refresh, 200)
+      // 使用事件总线监听GoodsListItem中图片加载完成，解决项目supermall中的better-scroll可滚动区域的问题
+      this.$bus.$on('itemImageLoad', () => {
+        refresh()
+      })
+    },
     methods: {
+
+      // 时间监听相关方法
+      tabClick(index) {
+        switch (index) {
+          case 0: 
+            this.currentType = 'pop'
+            break
+          case 1:
+            this.currentType = 'new'
+            break
+          case 2:
+            this.currentType = 'sell'
+            break
+        }
+      },
+
+      backClick() {
+        //不写成this.$refs.scroll.scroll.scrollTo(0,0)是因为scroll里面对这步封装了
+        this.$refs.scroll.scrollTo(0,0)
+      },
+      contentScroll(position) {
+        this.isShowBackTop = (-position.y) > 1000
+      },
+      loadMore() {
+        this.getHG(this.currentType)
+        // 异步加载图片的时候刷新一次
+        // this.$refs.scroll.scroll.refresh()
+      },
+      // 网络请求相关方法
       getHM() {
         getHomeMultidata().then(res => {
-          console.log(res)
           this.banners = res.data.banner.list
           this.recommend = res.data.recommend.list
         })
@@ -169,6 +126,8 @@ import { getHomeMultidata,getHomeGoods } from 'network/home'
           // 将res.data.list数组中的数据一个个取出来塞进goods[type].list中，重复执行该步骤是追加而不是覆盖
             this.goods[type].list.push(...res.data.list)
             this.goods[type].page += 1
+            // 完成上拉加载更多，没有这步的话上拉操作只会生效一次
+            this.$refs.scroll.finishPullUp()
           }
         )       
       }
@@ -177,11 +136,16 @@ import { getHomeMultidata,getHomeGoods } from 'network/home'
 </script>
 
 <style scoped>
+/* 有scoped则这里的所有样式只会对当前组件起效果，不会对其他组件的同名类等起效果 */
+
   #home {
-    padding-top: 44px;
+    /* vh是viewport height，即当前视口高度，100vh即100%视口 */
+    height: 100vh;
+    position: relative;
+    /* padding-top: 44px; */
 
     /* 为了底部图片不被tabbar遮盖的暂时办法 */
-    padding-bottom: 49px;
+    /* padding-bottom: 49px; */
   }
 
  .home-nav {
@@ -198,7 +162,18 @@ import { getHomeMultidata,getHomeGoods } from 'network/home'
 
    .tab-control {
      /* 简单地让tab-control实现吸顶效果 */
-     position: sticky;
      top: 44px;
+     z-index: 9;
    }
+
+  .content {
+    overflow: hidden;
+
+    position: absolute;
+    top: 44px;
+    bottom: 49px;
+    left: 0;
+    right: 0;
+  }
+
 </style>
