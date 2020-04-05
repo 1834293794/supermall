@@ -5,15 +5,26 @@
         <div>购物街</div>
       </template>
     </nav-bar>
+    <tab-control :titles="['流行', '新款', '综合']" 
+                  ref="tabControl1" 
+                  @tabClick="tabClick"
+                  class="tab-control"
+                  v-show="isTabFixed"
+    >
+    </tab-control>
     <scroll class="content" ref="scroll" :probe-type="3"
       @scroll="contentScroll"
       :pull-up-load="true"
       @pullingUp="loadMore"
     >
-      <home-swiper :banners="banners"></home-swiper>
+      <home-swiper :banners="banners" @swiperImageLoad="swiperImageLoad"></home-swiper>
       <recommend-view :recommends="recommend"></recommend-view>
       <feature-view></feature-view>
-      <tab-control :titles="['流行', '新款', '综合']" class="tab-control" @tabClick="tabClick"></tab-control>
+      <tab-control :titles="['流行', '新款', '综合']" 
+                    ref="tabControl2" 
+                    @tabClick="tabClick"
+      >
+      </tab-control>
       <good-list :goods="showGoods"></good-list>      
     </scroll>
     <!-- 组件不能直接监听click，必须加上native修饰符以监听组件根元素的原生事件 -->
@@ -58,7 +69,10 @@ import { debounce } from 'common/utils.js'
           'sell': {page: 0, list: []},
         },
         currentType: 'pop',
-        isShowBackTop: 'false'
+        isShowBackTop: false,
+        offsetTop: 0,
+        isTabFixed: false,
+        saveY: 0
       }
     },
     computed: {
@@ -77,12 +91,21 @@ import { debounce } from 'common/utils.js'
       
     },
     mounted () {
-      // 防抖函数，避免refresh执行过于频繁,详见utils.js
+      // debounce防抖函数，避免scroll中的refresh方法执行过于频繁,详见utils.js
       const refresh = debounce(this.$refs.scroll.refresh, 200)
       // 使用事件总线监听GoodsListItem中图片加载完成，解决项目supermall中的better-scroll可滚动区域的问题
       this.$bus.$on('itemImageLoad', () => {
         refresh()
       })
+
+    },
+    // 以下两个用于实现离开首页再回来时能使首页保持离开时的位置，better-scroll实现的有时会失效
+    actived() {
+      this.$refs.scroll.scrollTo(0, this.saveY, 0)
+      this.$refs.scroll.refresh()
+    },
+    deactivated () {
+      this.saveY = this.$refs.scroll.getScrollY()
     },
     methods: {
 
@@ -99,14 +122,21 @@ import { debounce } from 'common/utils.js'
             this.currentType = 'sell'
             break
         }
+        this.$refs.tabControl1.currentindex = index
+        this.$refs.tabControl2.currentindex = index
       },
 
       backClick() {
         //不写成this.$refs.scroll.scroll.scrollTo(0,0)是因为scroll里面对这步封装了
         this.$refs.scroll.scrollTo(0,0)
       },
+      // 决定BackTop是否显示及topControl是否吸顶
       contentScroll(position) {
+        // 决定BackTop是否显示
         this.isShowBackTop = (-position.y) > 1000
+
+        // 决定topControl是否吸顶(position: fixed)
+        this.isTabFixed = (-position.y) > this.offsetTop
       },
       loadMore() {
         this.getHG(this.currentType)
@@ -130,6 +160,11 @@ import { debounce } from 'common/utils.js'
             this.$refs.scroll.finishPullUp()
           }
         )       
+      },
+
+      // 轮播图加载完成后计算tabControl的offsetTop，用于实现吸顶效果，吸顶实现详见知识点总结.md的第九点
+      swiperImageLoad() {
+        this.offsetTop = this.$refs.tabControl2.$el.offsetTop
       }
     }
   }
@@ -148,23 +183,25 @@ import { debounce } from 'common/utils.js'
     /* padding-bottom: 49px; */
   }
 
+  .tab-control {
+    position: relative;
+    z-index: 9;
+  }
+
  .home-nav {
    background-color: var(--color-tint);
    color: white;
 
-  /* 固定导航栏，使其不会随着滚动消失，能始终在页面最上方 */
-   position: fixed;
+  /* 使用浏览器原生的滚动时为了固定导航栏，使其不会随着滚动消失，设置这些样式使它能始终在页面最上方 */
+  /* 现在不用这些样式了，因为使用了better-scroll，页面始终是在better-scroll的控制区域中滚动，不影响导航栏 */
+   /* position: fixed;
    left: 0;
    right: 0;
    top: 0;
-   z-index: 9;
+   z-index: 9; */
    }
 
-   .tab-control {
-     /* 简单地让tab-control实现吸顶效果 */
-     top: 44px;
-     z-index: 9;
-   }
+
 
   .content {
     overflow: hidden;

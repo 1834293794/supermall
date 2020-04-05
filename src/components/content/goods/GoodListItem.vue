@@ -1,5 +1,5 @@
 <template>
-  <div class="goods-item">
+  <div class="goods-item" @click="itemClick">
     <img :src="goodsItem.show.img" alt="" @load="imageLoad">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
@@ -29,6 +29,9 @@ export default {
       // 这样太繁琐，有两种替代方法，一是使用Vuex，每当有图片加载完成改变Vuex中的一个状态，Home.vue中监听到状态的改变进行调用
       // 而是使用事件总线，Home.vue中可以直接监听到发射的事件
       this.$bus.$emit('itemImageLoad')
+    },
+    itemClick() {
+      this.$router.push('/detail/' + this.goodsItem.iid)
     }
   }
 }

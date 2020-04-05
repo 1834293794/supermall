@@ -1,6 +1,10 @@
 <template>
   <div id="app">
-    <router-view/>
+    <!-- 在这里用keep-alive没有exclude会出问题，点击跳转详情页的时候所有的详情页都是一样的 -->
+    <!-- 这是因为keep-alive使得详情页不会被销毁，第一次创建后，如果打算点击跳转别的详情页根本不会触发created -->
+    <keep-alive exclude="Detail">
+      <router-view/>
+    </keep-alive>
     <main-tab-bar/>
   </div>
 </template>
