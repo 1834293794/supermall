@@ -11,3 +11,30 @@ export function debounce(func, delay) {
   }
 
 }
+
+export function formatDate(date, fmt) {
+  if (/(y+)/.test(fmt)) {
+    // RegExp.$1是 '/(y+)/.test(fmt)' 匹配到的结果
+    // date.getFullYear() + ''这一步数字加空字符串的操作将数字转换成了字符串
+    fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length));
+  }
+  let o = {
+    'M+': date.getMonth() + 1,
+    'd+': date.getDate(),
+    'h+': date.getHours(),
+    'm+': date.getMinutes(),
+    's+': date.getSeconds()
+  };
+  for (let k in o) {
+    if (new RegExp(`(${k})`).test(fmt)) {
+      let str = o[k] + '';
+      fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? str : padLeftZero(str));
+    }
+  }
+  return fmt;
+};
+
+function padLeftZero (str) {
+  // 如果传进来的是04,加00后0004截取两位变成04；传进来的是4,004截取一位变成04
+  return ('00' + str).substr(str.length);
+};

@@ -46,6 +46,7 @@ import BackTop from 'components/content/backTop/BackTop'
 
 import { getHomeMultidata,getHomeGoods } from 'network/home'
 import { debounce } from 'common/utils.js'
+import { itemListenerMixin } from 'common/mixin.js'
 
   export default {
     name: "Home",
@@ -72,9 +73,10 @@ import { debounce } from 'common/utils.js'
         isShowBackTop: false,
         offsetTop: 0,
         isTabFixed: false,
-        saveY: 0
+        saveY: 0,
       }
     },
+    mixins: [itemListenerMixin],
     computed: {
       showGoods() {
         return this.goods[this.currentType].list
@@ -91,21 +93,28 @@ import { debounce } from 'common/utils.js'
       
     },
     mounted () {
-      // debounce防抖函数，避免scroll中的refresh方法执行过于频繁,详见utils.js
-      const refresh = debounce(this.$refs.scroll.refresh, 200)
-      // 使用事件总线监听GoodsListItem中图片加载完成，解决项目supermall中的better-scroll可滚动区域的问题
-      this.$bus.$on('itemImageLoad', () => {
-        refresh()
-      })
+      // 以下防抖函数的内容运用混入抽离到mixin.js中去了
 
+      // // debounce防抖函数，避免scroll中的refresh方法执行过于频繁,详见utils.js
+      // let newRefresh = debounce(this.$refs.scroll.refresh, 200)
+      // // 使用事件总线监听GoodsListItem中图片加载完成，解决项目supermall中的better-scroll可滚动区域的问题
+      // this.$bus.$on('itemImageLoad', () => {
+      //   newRefresh()
+      // })
     },
+
     // 以下两个用于实现离开首页再回来时能使首页保持离开时的位置，better-scroll实现的有时会失效
     actived() {
       this.$refs.scroll.scrollTo(0, this.saveY, 0)
       this.$refs.scroll.refresh()
     },
     deactivated () {
+      // 1.保存Y值
       this.saveY = this.$refs.scroll.getScrollY()
+      // 2.取消全局事件的监听
+      // 因为GoodListItem组件同时在Home和Detail中被用到，为了避免Detail中图片加载完成的itemImageLoad事件发射影响到Home
+      // 在离开Home时取消该事件监听
+      this.$bus.$off('itemImageLoad', this.itemImgListener)
     },
     methods: {
 
@@ -165,7 +174,8 @@ import { debounce } from 'common/utils.js'
       // 轮播图加载完成后计算tabControl的offsetTop，用于实现吸顶效果，吸顶实现详见知识点总结.md的第九点
       swiperImageLoad() {
         this.offsetTop = this.$refs.tabControl2.$el.offsetTop
-      }
+      },
+
     }
   }
 </script>

@@ -8,6 +8,12 @@ export function getDetail(iid) {
   })
 }
 
+export function getRecommend() {
+  return request({
+    url: '/recommend'
+  })
+}
+
 // 通过使用这些类的构造函数将不同位置的数据整合到一个对象中，到时对应组件只要从一个对象中取数据就可以了
 export class Goods {
   constructor(itemInfo, columns, services) {

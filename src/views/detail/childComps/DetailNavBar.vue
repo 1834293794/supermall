@@ -1,17 +1,19 @@
 <template>
   <div>
     <nav-bar>
-      <!-- 部分样式设置在了NavBar.vue中，比如这里的back类对其进行样式设置无效，template标签最终是不存在的 -->
+      <!-- 这里的back类对其进行样式设置无效，template标签最终是不存在的 -->
         <template #left class="back">
           <img src="~assets/img/common/back.svg" @click="backClick">
         </template>
         <template  v-slot:center>
-          <div v-for="(item, index) in titles" class="title-item" 
-            :class="{active: currentIndex === index}" 
-            :key="index"
-            @click="titleClick(index)"
-          >
-            {{item}}
+          <div class="title">
+            <div v-for="(item, index) in titles" class="title-item" 
+              :class="{active: currentIndex === index}" 
+              :key="index"
+              @click="titleClick(index)"
+            >
+              {{item}}
+            </div>
           </div>
         </template>
     </nav-bar>
@@ -34,19 +36,8 @@ export default {
   },
   methods: {
     titleClick(index) {
-      switch (index) {
-        case 0:
-          this.currentIndex = 0
-          break
-        case 1:
-          this.currentIndex = 1
-          break
-        case 2:
-          this.currentIndex = 2
-          break
-        case 3:
-          this.currentIndex = 3
-      }
+      this.currentIndex = index
+      this.$emit('titleClick', index)
     },
     backClick() {
       this.$router.back()
@@ -55,6 +46,9 @@ export default {
 };
 </script>
 <style scoped>
+.title {
+  display: flex;
+}
 
 .title-item {
   flex: 1;

@@ -33,6 +33,6 @@ export default {
   .center {
     /* 当flex设定为1，而其他部分都有了具体宽度，那么center就会把剩余部分全部占据 */
     flex: 1;
-    display: flex;
+    /* display: flex; */
   }
 </style>
