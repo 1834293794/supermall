@@ -1,6 +1,7 @@
 <template>
   <div class="goods-item" @click="itemClick">
-    <img :src="showImage" alt="" @load="imageLoad">
+    <!-- 将:src变为了v-lazy从而使用第三方库实现图片懒加载 -->
+    <img v-lazy="showImage" alt="" @load="imageLoad">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>

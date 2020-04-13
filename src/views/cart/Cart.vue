@@ -4,18 +4,21 @@
       <div slot="center">购物车({{cartLength}})</div>
     </nav-bar>
     <cart-list/>
+    <cart-bottom-bar/>
   </div>
 </template>
 
 <script>
   import CartList from './childComps/CartList'
+  import CartBottomBar from './childComps/CartBottomBar'
   import NavBar from 'components/common/navbar/NavBar'
   import {mapGetters} from 'vuex'
   export default {
     name: "Cart",
     components: {
       NavBar,
-      CartList
+      CartList,
+      CartBottomBar
     },
     computed: {
       // 将vuex中的getters方法直接转为计算属性,两种语法
@@ -28,7 +31,7 @@
       // })
     },
     created () {
-      console.log('cart created')
+      // console.log('cart created')
     }
   }
 </script>

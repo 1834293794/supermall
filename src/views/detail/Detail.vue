@@ -35,6 +35,8 @@ import { debounce } from 'common/utils.js'
 import { itemListenerMixin } from 'common/mixin.js'
 import { BACKTOP_DISTANCE } from 'common/const.js'
 
+import {mapActions} from 'vuex'
+
 export default {
   // name属性平时可能无用，但如果为空，keep-alive的exclude就会失效
   name: 'Detail',
@@ -49,7 +51,7 @@ export default {
     DetailBottomBar,
     Scroll,
     GoodList,
-    BackTop
+    BackTop,
   },
   mixins: [itemListenerMixin],
   data () {
@@ -65,7 +67,7 @@ export default {
       themeTopYs: [],
       offsetListener: null,
       currentIndex: 0,
-      isShowBackTop: false
+      isShowBackTop: false,
     }
   },
   created () {
@@ -128,6 +130,9 @@ export default {
     this.$bus.$off('detailOffsetTop', this.offsetListener)
   },
   methods: {
+    // 将vuex中的actions方法映射过来
+    ...mapActions(['addCart']),
+
     titleClick(index) {
       this.$refs.scroll.scrollTo(0, -(this.themeTopYs[index]-44), 200)
 
@@ -167,7 +172,7 @@ export default {
     },
 
     addToCart() {
-      // 获取购物车需要展示的信息
+      // 1.获取购物车需要展示的信息
       const product = {}
       product.image = this.topImages[0]
       product.title = this.goods.title
@@ -176,8 +181,23 @@ export default {
       product.iid = this.iid
       // console.log(product.title)
 
-      // 将商品添加到购物车
-      this.$store.dispatch('addCart', product)
+      // 2.将商品添加到购物车(1.Promise 2.mapActions)
+      // 2.1 原来的使用actions的方法
+      // this.$store.dispatch('addCart', product).then(res => {
+      //   console.log(res)
+      // })
+      // 2.2 将actions映射进来后的使用方法
+      this.addCart(product).then(res => {
+        // this.message = res
+        // this.show = true
+        // setTimeout(() => {
+        //   this.message = ''
+        //   this.show = false
+        // }, 1500)
+        this.$toast.show(res, 2000)
+        console.log(res)
+      })
+
     }
   }
 }
